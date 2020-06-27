@@ -83,11 +83,16 @@ public class DfuDeviceLocator {
                             setting.bInterfaceProtocol()
                     ));
 
+
+
                     if (setting.bInterfaceClass() == USB_CLASS_APP_SPECIFIC &&
                             setting.bInterfaceSubClass() == DFU_SUBCLASS) {
                         log.debug(String.format("Found DFU interface: %d", interfaceNumber));
 
                         DeviceHandle deviceHandle = open(device);
+
+                        String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
+                        log.info("StringDescriptor: " + stringDescriptor);
 
                         result = LibUsb.claimInterface(deviceHandle, interfaceNumber);
                         if (result != LibUsb.SUCCESS) {
