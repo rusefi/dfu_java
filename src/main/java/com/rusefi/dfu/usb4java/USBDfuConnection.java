@@ -15,6 +15,8 @@ public class USBDfuConnection implements DfuConnection {
     private final FlashRange flashRange;
 
     public USBDfuConnection(DeviceHandle deviceHandle, byte interfaceNumber, int transferSize, FlashRange flashRange) {
+        if (transferSize == 0)
+            throw new IllegalArgumentException("transfer size not detected");
         this.deviceHandle = deviceHandle;
         this.interfaceNumber = interfaceNumber;
         this.transferSize = transferSize;

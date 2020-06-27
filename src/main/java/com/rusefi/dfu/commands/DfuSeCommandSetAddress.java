@@ -5,9 +5,10 @@ import com.rusefi.dfu.usb4java.USBDfuConnection;
 
 import java.nio.ByteBuffer;
 
-public class DfuCommandClearStatus {
-    public static void execute(USBDfuConnection session) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(0);
+public class DfuSeCommandSetAddress {
+    public static void execute(USBDfuConnection session, int address) {
+        ByteBuffer buffer = ByteBuffer.allocateDirect(4);
+        buffer.putInt(address);
         session.sendData(DfuCommmand.CLRSTATUS, (short) 0, buffer);
     }
 }

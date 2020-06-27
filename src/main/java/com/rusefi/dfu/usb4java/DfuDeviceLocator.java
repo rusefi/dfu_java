@@ -2,6 +2,7 @@ package com.rusefi.dfu.usb4java;
 
 import com.rusefi.dfu.DfuSeFlashDescriptor;
 import com.rusefi.dfu.FlashRange;
+import com.rusefi.dfu.commands.DfuCommandAbort;
 import com.rusefi.dfu.commands.DfuCommandClearStatus;
 import com.rusefi.dfu.commands.DfuCommandGetStatus;
 import org.apache.commons.logging.Log;
@@ -149,6 +150,14 @@ public class DfuDeviceLocator {
                                 break;
                             case DFU_ERROR:
                                 DfuCommandClearStatus.execute(session);
+                                break;
+                            case DFU_DOWNLOAD_SYNC:
+                            case DFU_DOWNLOAD_IDLE:
+                            case DFU_UPLOAD_IDLE:
+                            case DFU_MANIFEST_SYNC:
+                            case DFU_DOWNLOAD_BUSY:
+                            case DFU_MANIFEST:
+                                DfuCommandAbort.execute(session);
                                 break;
                             default:
                                 throw new IllegalStateException("Unexpected state " + state);

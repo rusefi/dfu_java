@@ -7,7 +7,12 @@ public enum DfuCommmand {
     GETSTATUS(3),
     CLRSTATUS(4),
     GETSTATE(5),
-    ABORT(6);
+    ABORT(6),
+
+    /**
+     * http://dfu-util.sourceforge.net/dfuse.html
+     */
+    SE_SET_ADDRESS(0x21);
 
     private final byte value;
 
