@@ -1,7 +1,9 @@
 package com.rusefi.dfu;
 
+import com.rusefi.dfu.usb4java.DfuDeviceLocator;
+import com.rusefi.dfu.usb4java.LogUtil;
+import com.rusefi.dfu.usb4java.USBDfuConnection;
 import org.apache.commons.logging.Log;
-import org.usb4java.Device;
 
 public class Sandbox {
     private static final Log log = LogUtil.getLog(Sandbox.class);
@@ -9,7 +11,8 @@ public class Sandbox {
     public static void main(String[] args) {
         log.info("Hello sandbox");
 
-        Device device = DfuDeviceLocator.findDevice();
+        USBDfuConnection device = DfuDeviceLocator.findDevice();
+
         log.info("STM32 DFU " + device);
     }
 }
