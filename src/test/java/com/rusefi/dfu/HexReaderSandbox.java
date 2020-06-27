@@ -12,7 +12,7 @@ public class HexReaderSandbox {
 
         HexImage image = HexImage.loadHexToBuffer(new FileInputStream("rusefi.hex"), range);
 
-        System.out.println("Total received " + image.getTotalBytes());
+        System.out.println("Total received " + image);
     }
 
 }

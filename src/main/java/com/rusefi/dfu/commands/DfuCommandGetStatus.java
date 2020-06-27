@@ -11,6 +11,8 @@ public class DfuCommandGetStatus {
     public static State read(USBDfuConnection session) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(PACKET_SIZE);
         int count = session.receiveData(DfuCommmand.GETSTATUS, (short) 0, buffer);
+        if (count == 0)
+            return State.DFU_ERROR;
         if (count != PACKET_SIZE)
             throw new IllegalStateException("Got " + count);
         buffer.rewind();

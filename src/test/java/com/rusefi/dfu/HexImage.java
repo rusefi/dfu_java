@@ -10,11 +10,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class HexImage extends AtomicInteger {
     private final byte[] image;
+    private final FlashRange range;
     private final int totalBytes;
+    private final int maxOffset;
 
-    public HexImage(byte[] image, int totalBytes) {
+    public HexImage(byte[] image, FlashRange range, int totalBytes, int maxOffset) {
         this.image = image;
+        this.range = range;
         this.totalBytes = totalBytes;
+        this.maxOffset = maxOffset;
     }
 
     static HexImage loadHexToBuffer(InputStream is, FlashRange range) throws IntelHexException, IOException {
@@ -24,12 +28,16 @@ public class HexImage extends AtomicInteger {
         Parser ihp = new Parser(is);
 
         AtomicInteger totalBytesReceived = new AtomicInteger();
+
+        AtomicInteger maxOffset = new AtomicInteger();
         // register parser listener
         ihp.setDataListener(new DataListener() {
             @Override
             public void data(long address, byte[] data) {
 //                System.out.printf("Address %x size %x\n", address, data.length);
                 totalBytesReceived.addAndGet(data.length);
+
+                maxOffset.set((int) Math.max(maxOffset.get(), address + data.length));
 
                 if (address < range.getBaseAddress() || address + data.length > range.getBaseAddress() + range.getTotalLength())
                     throw new IllegalStateException(String.format("Image data out of range: %x@%x not withiin %s",
@@ -46,7 +54,9 @@ public class HexImage extends AtomicInteger {
         });
         ihp.parse();
 
-        return new HexImage(image, totalBytesReceived.get());
+        maxOffset.set(range.getBaseAddress() + 16 * 1024);
+
+        return new HexImage(image, range, totalBytesReceived.get(), maxOffset.get());
     }
 
     public byte[] getImage() {
@@ -55,5 +65,23 @@ public class HexImage extends AtomicInteger {
 
     public int getTotalBytes() {
         return totalBytes;
+    }
+
+    public int getMaxOffset() {
+        return maxOffset;
+    }
+
+    public FlashRange getRange() {
+        return range;
+    }
+
+    @Override
+    public String toString() {
+        return "HexImage{" +
+                "image=" + image.length +
+                ", range=" + range +
+                ", totalBytes=" + totalBytes +
+                ", maxOffset=" + maxOffset +
+                '}';
     }
 }

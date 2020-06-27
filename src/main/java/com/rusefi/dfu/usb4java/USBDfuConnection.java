@@ -34,21 +34,21 @@ public class USBDfuConnection implements DfuConnection {
     }
 
     @Override
-    public int receiveData(DfuCommmand command, short value, ByteBuffer data) {
-        return transfer(command, value, data, LibUsb.ENDPOINT_IN);
+    public int receiveData(DfuCommmand command, short wValue, ByteBuffer data) {
+        return transfer(command, wValue, data, LibUsb.ENDPOINT_IN);
     }
 
     @Override
-    public int sendData(DfuCommmand command, short value, ByteBuffer data) {
-        return transfer(command, value, data, LibUsb.ENDPOINT_OUT);
+    public int sendData(DfuCommmand command, short wValue, ByteBuffer data) {
+        return transfer(command, wValue, data, LibUsb.ENDPOINT_OUT);
     }
 
-    private int transfer(DfuCommmand command, short value, ByteBuffer data, byte mode) {
+    private int transfer(DfuCommmand command, short wValue, ByteBuffer data, byte mode) {
         return LibUsb.controlTransfer(
                 deviceHandle,
                 (byte) (mode | LibUsb.REQUEST_TYPE_CLASS | LibUsb.RECIPIENT_INTERFACE),
                 command.getValue(),
-                value,
+                wValue,
                 interfaceNumber,
                 data,
                 DFU_TIMEOUT);
