@@ -16,4 +16,12 @@ public class FlashRange {
     public int getTotalLength() {
         return totalLength;
     }
+
+    @Override
+    public String toString() {
+        return "FlashRange{" +
+                "baseAddress=" + baseAddress +
+                ", totalLength=" + totalLength +
+                '}';
+    }
 }

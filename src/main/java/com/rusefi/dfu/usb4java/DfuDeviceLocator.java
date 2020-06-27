@@ -1,9 +1,13 @@
 package com.rusefi.dfu.usb4java;
 
+import com.rusefi.dfu.DfuSeFlashDescriptor;
+import com.rusefi.dfu.FlashRange;
 import com.rusefi.dfu.commands.DfuCommandClearStatus;
 import com.rusefi.dfu.commands.DfuCommandGetStatus;
 import org.apache.commons.logging.Log;
 import org.usb4java.*;
+
+import java.nio.ByteBuffer;
 
 public class DfuDeviceLocator {
     private static final short ST_VENDOR = 0x0483;
@@ -11,6 +15,7 @@ public class DfuDeviceLocator {
 
     private static final byte USB_CLASS_APP_SPECIFIC = (byte) 0xfe;
     private static final byte DFU_SUBCLASS = 0x01;
+    private static final byte USB_DT_DFU = 0x21;
 
     private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);
 
@@ -56,15 +61,27 @@ public class DfuDeviceLocator {
         return null;
     }
 
+    public static int swap16(int x) {
+        return (((x & 0xff) << 8) | ((x >> 8) & 0xff));
+    }
+
     public static USBDfuConnection findDfuInterface(Device device, DeviceDescriptor deviceDescriptor) {
         byte numConfigurations = deviceDescriptor.bNumConfigurations();
         log.info(numConfigurations + " configuration(s)");
+
+        DeviceHandle deviceHandle = open(device);
+        int transferSize = 0;
+        FlashRange flashRange = null;
+
         for (int configurationIndex = 0; configurationIndex < numConfigurations; configurationIndex++) {
             ConfigDescriptor config = new ConfigDescriptor();
             int result = LibUsb.getConfigDescriptor(device, (byte) configurationIndex, config);
             if (result != LibUsb.SUCCESS) {
                 throw new LibUsbException("getConfigDescriptor", result);
             }
+
+            System.out.println("Config " + config);
+            System.out.println("Config Done");
 
             byte numInterfaces = config.bNumInterfaces();
             log.info(numInterfaces + " interface(s)");
@@ -74,7 +91,32 @@ public class DfuDeviceLocator {
 
                 for (int s = 0; s < iface.numAltsetting(); s++) {
                     InterfaceDescriptor setting = iface.altsetting()[s];
-                    log.info("Set " + setting);
+                    System.out.println("setting " + setting);
+
+                    ByteBuffer extra = setting.extra();
+
+                    if (extra.limit() > 2) {
+                        int len = extra.get();
+                        byte type = extra.get();
+                        if (type == USB_DT_DFU) {
+                            System.out.println(len + " " + type);
+                            extra.get(); // bmAttributes
+                            extra.get(); // wDetachTimeOut
+                            extra.get();
+                            transferSize = swap16(extra.getShort());
+                            System.out.println("transferSize " + transferSize);
+                        }
+                    }
+                }
+            }
+
+            for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
+                Interface iface = config.iface()[interfaceIndex];
+
+                for (int s = 0; s < iface.numAltsetting(); s++) {
+                    InterfaceDescriptor setting = iface.altsetting()[s];
+
+                    log.info("Settings " + setting);
                     byte interfaceNumber = setting.bInterfaceNumber();
                     log.info(String.format("Setting %d: %x %x class %x, subclass %x, protocol: %x", s,
                             interfaceNumber,
@@ -83,23 +125,21 @@ public class DfuDeviceLocator {
                             setting.bInterfaceProtocol()
                     ));
 
-
-
                     if (setting.bInterfaceClass() == USB_CLASS_APP_SPECIFIC &&
                             setting.bInterfaceSubClass() == DFU_SUBCLASS) {
                         log.debug(String.format("Found DFU interface: %d", interfaceNumber));
 
-                        DeviceHandle deviceHandle = open(device);
-
                         String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
                         log.info("StringDescriptor: " + stringDescriptor);
+                        if (stringDescriptor.contains("Flash"))
+                            flashRange = DfuSeFlashDescriptor.parse(stringDescriptor);
 
                         result = LibUsb.claimInterface(deviceHandle, interfaceNumber);
                         if (result != LibUsb.SUCCESS) {
                             throw new LibUsbException("claimInterface", result);
                         }
 
-                        USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber);
+                        USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber, transferSize, flashRange);
 
                         DfuCommandGetStatus.State state = DfuCommandGetStatus.read(session);
                         log.info("DFU state: " + state);
