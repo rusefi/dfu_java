@@ -54,8 +54,6 @@ public class HexImage extends AtomicInteger {
         });
         ihp.parse();
 
-        maxOffset.set(range.getBaseAddress() + 16 * 1024);
-
         return new HexImage(image, range, totalBytesReceived.get(), maxOffset.get());
     }
 

@@ -2,6 +2,10 @@ package com.rusefi.dfu;
 
 import java.util.Arrays;
 
+/**
+ * ST chips send their memory layout in USB description string
+ * This class knows how to unpack those descriptions
+ */
 public class DfuSeFlashDescriptor {
     private static final String HEX_PREFIX = "0x";
     private static final String K_SUFFIX = "Kg";

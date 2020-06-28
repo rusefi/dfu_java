@@ -5,6 +5,9 @@ import cz.jaybee.intelhex.IntelHexException;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+/**
+ * A test tool focused only on HEX file input
+ */
 public class HexReaderSandbox {
     public static void main(String[] args) throws IOException, IntelHexException {
 
@@ -14,5 +17,4 @@ public class HexReaderSandbox {
 
         System.out.println("Total received " + image);
     }
-
 }

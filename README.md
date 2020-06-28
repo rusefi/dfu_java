@@ -1,6 +1,10 @@
 # dfu_java
 stm32 java DFU implementation (DfuSe)
 
+This java code can upload a .hex file into stm32f47.
+
+On Windows that means using a libusb-compatible driver like the one included in windows_driver folder.
+
 
 ST AN3156 Application note
 USB DFU protocol used in the STM32 bootloader

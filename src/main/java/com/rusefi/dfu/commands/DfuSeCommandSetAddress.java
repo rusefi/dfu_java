@@ -15,7 +15,6 @@ public class DfuSeCommandSetAddress {
     public static void execute(USBDfuConnection session, int address) {
         log.info(String.format("SetAddress %x", address));
         ByteBuffer buffer = createSpecialCommandBuffer(DfuSeCommand.SE_SET_ADDRESS, address);
-        buffer.putInt(address);
         session.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_SPECIAL, buffer);
     }
 
