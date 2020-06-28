@@ -1,7 +1,6 @@
 package com.rusefi.dfu;
 
 import com.rusefi.dfu.usb4java.DfuDeviceLocator;
-import com.rusefi.dfu.usb4java.LogUtil;
 import com.rusefi.dfu.usb4java.USBDfuConnection;
 import cz.jaybee.intelhex.IntelHexException;
 import org.apache.commons.logging.Log;

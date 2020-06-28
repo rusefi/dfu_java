@@ -1,4 +1,4 @@
-package com.rusefi.dfu.usb4java;
+package com.rusefi.dfu;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

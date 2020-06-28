@@ -7,6 +7,12 @@ import com.rusefi.dfu.usb4java.USBDfuConnection;
 import java.nio.ByteBuffer;
 
 public class DfuLogic {
+    public static final short ST_VENDOR = 0x0483;
+    public static final short ST_DFU_PRODUCT = (short) 0xdf11;
+    public static final byte USB_CLASS_APP_SPECIFIC = (byte) 0xfe;
+    public static final byte DFU_SUBCLASS = 0x01;
+    public static final byte USB_DT_DFU = 0x21;
+
     static void uploadImage(USBDfuConnection device, HexImage image) {
         // todo: smarter erase handling!
         DfuSeCommandErasePage.execute(device, 0x08000000);

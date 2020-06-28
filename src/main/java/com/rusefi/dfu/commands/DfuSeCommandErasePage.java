@@ -3,7 +3,7 @@ package com.rusefi.dfu.commands;
 import com.rusefi.dfu.DfuCommmand;
 import com.rusefi.dfu.DfuConnection;
 import com.rusefi.dfu.DfuSeCommand;
-import com.rusefi.dfu.usb4java.LogUtil;
+import com.rusefi.dfu.LogUtil;
 import com.rusefi.dfu.usb4java.USBDfuConnection;
 import org.apache.commons.logging.Log;
 

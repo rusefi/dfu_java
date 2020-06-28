@@ -1,7 +1,9 @@
 package com.rusefi.dfu.usb4java;
 
+import com.rusefi.dfu.DfuLogic;
 import com.rusefi.dfu.DfuSeFlashDescriptor;
 import com.rusefi.dfu.FlashRange;
+import com.rusefi.dfu.LogUtil;
 import com.rusefi.dfu.commands.DfuCommandAbort;
 import com.rusefi.dfu.commands.DfuCommandClearStatus;
 import com.rusefi.dfu.commands.DfuCommandGetStatus;
@@ -11,12 +13,6 @@ import org.usb4java.*;
 import java.nio.ByteBuffer;
 
 public class DfuDeviceLocator {
-    private static final short ST_VENDOR = 0x0483;
-    private static final short ST_DFU_PRODUCT = (short) 0xdf11;
-
-    private static final byte USB_CLASS_APP_SPECIFIC = (byte) 0xfe;
-    private static final byte DFU_SUBCLASS = 0x01;
-    private static final byte USB_DT_DFU = 0x21;
 
     private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);
 
@@ -30,7 +26,7 @@ public class DfuDeviceLocator {
     }
 
     public static USBDfuConnection findDevice() {
-        return findDevice(openContext(), ST_VENDOR, ST_DFU_PRODUCT);
+        return findDevice(openContext(), DfuLogic.ST_VENDOR, DfuLogic.ST_DFU_PRODUCT);
     }
 
     private static USBDfuConnection findDevice(Context context, short vendorId, short productId) {
@@ -99,7 +95,7 @@ public class DfuDeviceLocator {
                     if (extra.limit() > 2) {
                         int len = extra.get();
                         byte type = extra.get();
-                        if (type == USB_DT_DFU) {
+                        if (type == DfuLogic.USB_DT_DFU) {
                             System.out.println(len + " " + type);
                             extra.get(); // bmAttributes
                             extra.get(); // wDetachTimeOut
@@ -126,8 +122,8 @@ public class DfuDeviceLocator {
                             setting.bInterfaceProtocol()
                     ));
 
-                    if (setting.bInterfaceClass() == USB_CLASS_APP_SPECIFIC &&
-                            setting.bInterfaceSubClass() == DFU_SUBCLASS) {
+                    if (setting.bInterfaceClass() == DfuLogic.USB_CLASS_APP_SPECIFIC &&
+                            setting.bInterfaceSubClass() == DfuLogic.DFU_SUBCLASS) {
                         log.debug(String.format("Found DFU interface: %d", interfaceNumber));
 
                         String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
