@@ -3,12 +3,13 @@ package com.rusefi.dfu.android;
 import android.hardware.usb.*;
 
 import com.rusefi.dfu.DfuLogic;
+import com.rusefi.dfu.DfuSeFlashDescriptor;
+import com.rusefi.dfu.FlashRange;
 //import com.rusefi.dfu.LogUtil;
 //import org.apache.commons.logging.Log;
 
 public class DfuDeviceLocator {
 //    private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);
-
 
     public static UsbDevice findDevice(UsbManager usbManager) {
         for (final UsbDevice usbDevice : usbManager.getDeviceList().values()) {
@@ -19,20 +20,16 @@ public class DfuDeviceLocator {
         return null;
     }
 
-
-    public short openDfu(UsbManager usbManager, UsbDevice dfuDevice) {
-
+    public Result openDfu(UsbManager usbManager, UsbDevice dfuDevice) {
         for (int interfaceIndex = 0; interfaceIndex < dfuDevice.getInterfaceCount(); interfaceIndex++) {
             UsbInterface usbInterface = dfuDevice.getInterface(interfaceIndex);
-
-        }
-
-        for (int interfaceIndex = 0; interfaceIndex < dfuDevice.getInterfaceCount(); interfaceIndex++) {
-            UsbInterface usbInterface = dfuDevice.getInterface(interfaceIndex);
+            String stringDescriptor = usbInterface.getName();
             if (usbInterface.getInterfaceClass() == DfuLogic.USB_CLASS_APP_SPECIFIC &&
-                    usbInterface.getInterfaceSubclass() == DfuLogic.DFU_SUBCLASS) {
+                    usbInterface.getInterfaceSubclass() == DfuLogic.DFU_SUBCLASS &&
+                    stringDescriptor.contains(DfuLogic.FLASH_TAG)) {
 //                log.debug(String.format("Found DFU interface: " + usbInterface));
 
+                FlashRange flashRange = DfuSeFlashDescriptor.parse(stringDescriptor);
 
                 UsbDeviceConnection connection = usbManager.openDevice(dfuDevice);
 
@@ -47,14 +44,33 @@ public class DfuDeviceLocator {
                     throw new IllegalStateException("Unexpected USB_DT_DFU");
                 int transferSize = rawDescs[69] * 256 + rawDescs[68];
 
-                System.out.println(rawDescs + " " + transferSize);
-
+                return new Result(connection, flashRange, transferSize);
             }
-
-
         }
-
-        return 0;
+        return null;
     }
 
+    private class Result {
+        private final UsbDeviceConnection connection;
+        private final FlashRange flashRange;
+        private final int transferSize;
+
+        public Result(UsbDeviceConnection connection, FlashRange flashRange, int transferSize) {
+            this.connection = connection;
+            this.flashRange = flashRange;
+            this.transferSize = transferSize;
+        }
+
+        public UsbDeviceConnection getConnection() {
+            return connection;
+        }
+
+        public FlashRange getFlashRange() {
+            return flashRange;
+        }
+
+        public int getTransferSize() {
+            return transferSize;
+        }
+    }
 }

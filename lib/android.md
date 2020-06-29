@@ -1,0 +1,1 @@
+mvn central has android jars up to version 4 (year 2015) I was not able to find a source for newer API jars. We need Android 5 here.
