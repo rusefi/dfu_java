@@ -26,7 +26,7 @@ public class DfuDeviceLocator {
     }
 
     public static USBDfuConnection findDevice() {
-        return findDevice(openContext(), DfuLogic.ST_VENDOR, DfuLogic.ST_DFU_PRODUCT);
+        return findDevice(openContext(), DfuLogic.ST_VENDOR, (short) DfuLogic.ST_DFU_PRODUCT);
     }
 
     private static USBDfuConnection findDevice(Context context, short vendorId, short productId) {
