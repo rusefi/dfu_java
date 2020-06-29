@@ -16,6 +16,8 @@ public class DfuDeviceLocator {
 
     private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);
 
+    private static StringBuilder usbInfo = new StringBuilder();
+
     public static Context openContext() {
         Context context = new Context();
         int result = LibUsb.init(context);
@@ -64,7 +66,8 @@ public class DfuDeviceLocator {
 
     public static USBDfuConnection findDfuInterface(Device device, DeviceDescriptor deviceDescriptor) {
         byte numConfigurations = deviceDescriptor.bNumConfigurations();
-        log.info(numConfigurations + " configuration(s)");
+
+        appendInfo(numConfigurations + " configuration(s)");
 
         DeviceHandle deviceHandle = open(device);
         int transferSize = 0;
@@ -77,11 +80,10 @@ public class DfuDeviceLocator {
                 throw new LibUsbException("getConfigDescriptor", result);
             }
 
-            System.out.println("Config " + config);
-            System.out.println("Config Done");
+            appendInfo("Config: " + config);
 
             byte numInterfaces = config.bNumInterfaces();
-            log.info(numInterfaces + " interface(s)");
+            appendInfo(numInterfaces + " interface(s)");
 
             for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
                 Interface iface = config.iface()[interfaceIndex];
@@ -112,17 +114,31 @@ public class DfuDeviceLocator {
 
                 for (int s = 0; s < iface.numAltsetting(); s++) {
                     InterfaceDescriptor setting = iface.altsetting()[s];
+                    appendInfo("Interface #" + interfaceIndex + " setting #" + s + ":");
+
+                    byte interfaceNumber = setting.bInterfaceNumber();
+                    appendInfo(String.format("Setting %d: %x %x class %x, subclass %x, protocol: %x", s,
+                            interfaceNumber,
+                            setting.iInterface(),
+                            setting.bInterfaceClass(),
+                            setting.bInterfaceSubClass(),
+                            setting.bInterfaceProtocol()
+                    ));
+                    String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
+                    appendInfo("Descriptor " + stringDescriptor);
+                }
+            }
+
+            for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
+                Interface iface = config.iface()[interfaceIndex];
+
+                for (int s = 0; s < iface.numAltsetting(); s++) {
+                    InterfaceDescriptor setting = iface.altsetting()[s];
 
                     log.info("Settings " + setting);
                     byte interfaceNumber = setting.bInterfaceNumber();
-                    log.info(String.format("Setting %d: %x %x class %x, subclass %x, protocol: %x", s,
-                            interfaceNumber,
-                            setting.iInterface(),
-                            setting.bInterfaceClass(), setting.bInterfaceSubClass(),
-                            setting.bInterfaceProtocol()
-                    ));
 
-                    if (setting.bInterfaceClass() == DfuLogic.USB_CLASS_APP_SPECIFIC &&
+                    if (setting.bInterfaceClass() == (byte) DfuLogic.USB_CLASS_APP_SPECIFIC &&
                             setting.bInterfaceSubClass() == DfuLogic.DFU_SUBCLASS) {
                         log.debug(String.format("Found DFU interface: %d", interfaceNumber));
 
@@ -162,12 +178,20 @@ public class DfuDeviceLocator {
                         if (state != DfuCommandGetStatus.State.DFU_IDLE)
                             throw new IllegalStateException("Not idle");
 
+
+                        System.out.printf("info:\n" + usbInfo);
+
                         return session;
                     }
                 }
             }
         }
         return null;
+    }
+
+    private static void appendInfo(String message) {
+        log.info(message);
+        usbInfo.append(message).append("\n");
     }
 
     private static DeviceHandle open(Device device) {

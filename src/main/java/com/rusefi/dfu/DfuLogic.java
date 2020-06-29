@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 public class DfuLogic {
     public static final short ST_VENDOR = 0x0483;
     public static final int ST_DFU_PRODUCT = 0xdf11;
-    public static final byte USB_CLASS_APP_SPECIFIC = (byte) 0xfe;
+    public static final int USB_CLASS_APP_SPECIFIC = 0xfe;
     public static final byte DFU_SUBCLASS = 0x01;
     public static final byte USB_DT_DFU = 0x21;
 

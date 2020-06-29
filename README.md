@@ -18,3 +18,5 @@ Zadig is a Windows application that installs generic USB drivers, such as WinUSB
 Uses precompiled https://github.com/j123b567/java-intelhex-parser
 
 This implementation would not happen without http://dfu-util.sourceforge.net/dfuse.html and https://github.com/kairyu/flop
+
+https://github.com/UmbrelaSmart/android-stm32-dfu-programmer is also nice
