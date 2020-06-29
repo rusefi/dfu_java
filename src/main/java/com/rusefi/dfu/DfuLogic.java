@@ -12,6 +12,7 @@ public class DfuLogic {
     public static final int USB_CLASS_APP_SPECIFIC = 0xfe;
     public static final byte DFU_SUBCLASS = 0x01;
     public static final byte USB_DT_DFU = 0x21;
+    public static final String FLASH_TAG = "Flash";
 
     static void uploadImage(USBDfuConnection device, HexImage image) {
         // todo: smarter erase handling!

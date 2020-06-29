@@ -144,7 +144,7 @@ public class DfuDeviceLocator {
 
                         String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
                         log.info("StringDescriptor: " + stringDescriptor);
-                        if (stringDescriptor.contains("Flash"))
+                        if (stringDescriptor.contains(DfuLogic.FLASH_TAG))
                             flashRange = DfuSeFlashDescriptor.parse(stringDescriptor);
 
                         result = LibUsb.claimInterface(deviceHandle, interfaceNumber);
