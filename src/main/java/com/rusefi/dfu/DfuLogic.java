@@ -5,6 +5,7 @@ import com.rusefi.dfu.commands.DfuSeCommandSetAddress;
 import com.rusefi.dfu.usb4java.USBDfuConnection;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class DfuLogic {
     public static final short ST_VENDOR = 0x0483;
@@ -15,14 +16,14 @@ public class DfuLogic {
     public static final String FLASH_TAG = "Flash";
 
     static void uploadImage(USBDfuConnection device, HexImage image) {
-        // todo: smarter erase handling!
-        DfuSeCommandErasePage.execute(device, 0x08000000);
-        DfuSeCommandErasePage.execute(device, 0x08004000);
-        DfuSeCommandErasePage.execute(device, 0x08008000);
-        DfuSeCommandErasePage.execute(device, 0x0800C000);
-        DfuSeCommandErasePage.execute(device, 0x08010000);
-        DfuSeCommandErasePage.execute(device, 0x08020000);
-        DfuSeCommandErasePage.execute(device, 0x08040000);
+        List<Integer> erasePages = image.getRange().pagesForSize(image.getTotalBytes());
+        // todo: smarted start address logic
+        int eraseAddress = 0x08000000;
+        for (Integer erasePage : erasePages) {
+            DfuSeCommandErasePage.execute(device, eraseAddress);
+            eraseAddress += erasePage;
+        }
+        System.out.println(String.format("Erased up to %x", eraseAddress));
 
         for (int offset = 0; offset < image.getMaxOffset() - image.getRange().getBaseAddress(); offset += device.getTransferSize()) {
             DfuSeCommandSetAddress.execute(device, device.getFlashRange().getBaseAddress() + offset);
