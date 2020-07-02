@@ -50,7 +50,7 @@ public class DfuDeviceLocator {
         return null;
     }
 
-    private class Result {
+    public static class Result {
         private final UsbDeviceConnection connection;
         private final FlashRange flashRange;
         private final int transferSize;
