@@ -22,10 +22,8 @@ public class Sandbox {
 
         HexImage image = HexImage.loadHexToBuffer(new FileInputStream("rusefi.hex"), device.getFlashRange());
 
-
-        DfuLogic.uploadImage(device, image);
+        DfuLogic.uploadImage(device, image, device.getFlashRange());
 
         log.info("STM32 DFU " + device);
     }
-
 }

@@ -8,15 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class HexImage extends AtomicInteger {
+public class HexImage implements BinaryImage {
     private final byte[] image;
-    private final FlashRange range;
     private final int totalBytes;
     private final int maxOffset;
 
-    public HexImage(byte[] image, FlashRange range, int totalBytes, int maxOffset) {
+    public HexImage(byte[] image, int totalBytes, int maxOffset) {
         this.image = image;
-        this.range = range;
         this.totalBytes = totalBytes;
         this.maxOffset = maxOffset;
     }
@@ -54,30 +52,23 @@ public class HexImage extends AtomicInteger {
         });
         ihp.parse();
 
-        return new HexImage(image, range, totalBytesReceived.get(), maxOffset.get());
+        return new HexImage(image, totalBytesReceived.get(), maxOffset.get());
     }
 
+    @Override
     public byte[] getImage() {
         return image;
     }
 
-    public int getTotalBytes() {
+    @Override
+    public int getImageSize() {
         return totalBytes;
-    }
-
-    public int getMaxOffset() {
-        return maxOffset;
-    }
-
-    public FlashRange getRange() {
-        return range;
     }
 
     @Override
     public String toString() {
         return "HexImage{" +
                 "image=" + image.length +
-                ", range=" + range +
                 ", totalBytes=" + totalBytes +
                 ", maxOffset=" + maxOffset +
                 '}';

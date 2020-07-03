@@ -15,8 +15,8 @@ public class DfuLogic {
     public static final byte USB_DT_DFU = 0x21;
     public static final String FLASH_TAG = "Flash";
 
-    static void uploadImage(USBDfuConnection device, HexImage image) {
-        List<Integer> erasePages = image.getRange().pagesForSize(image.getTotalBytes());
+    static void uploadImage(USBDfuConnection device, HexImage image, FlashRange range) {
+        List<Integer> erasePages = range.pagesForSize(image.getImageSize());
         // todo: smarted start address logic
         int eraseAddress = 0x08000000;
         for (Integer erasePage : erasePages) {
@@ -25,16 +25,16 @@ public class DfuLogic {
         }
         System.out.println(String.format("Erased up to %x", eraseAddress));
 
-        for (int offset = 0; offset < image.getMaxOffset() - image.getRange().getBaseAddress(); offset += device.getTransferSize()) {
+        for (int offset = 0; offset < image.getImage().length; offset += device.getTransferSize()) {
             DfuSeCommandSetAddress.execute(device, device.getFlashRange().getBaseAddress() + offset);
-            DfuConnection.waitStatus(device);
+            DfuConnectionUtil.waitStatus(device);
 
             ByteBuffer buffer = ByteBuffer.allocateDirect(device.getTransferSize());
             buffer.put(image.getImage(), offset, device.getTransferSize());
             device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, buffer);
             // AN3156 USB DFU protocol used in the STM32 bootloader
             // "The Write memory operation is effectively executed only when a DFU_GETSTATUS request is issued by the host. "
-            DfuConnection.waitStatus(device);
+            DfuConnectionUtil.waitStatus(device);
         }
     }
 }
