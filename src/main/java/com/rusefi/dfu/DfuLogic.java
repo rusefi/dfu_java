@@ -33,7 +33,7 @@ public class DfuLogic {
             DfuSeCommandSetAddress.execute(logger, device, device.getFlashRange().getBaseAddress() + offset);
             DfuConnectionUtil.waitStatus(logger, device);
 
-            ByteBuffer buffer = ByteBuffer.allocateDirect(device.getTransferSize());
+            ByteBuffer buffer = ByteBuffer.allocate(device.getTransferSize());
             // last transfer would usually be smaller than transfer size
             int size = Math.min(device.getTransferSize(), image.getImage().length - offset);
             buffer.put(image.getImage(), offset, size);
@@ -45,7 +45,7 @@ public class DfuLogic {
     }
 
     public static void leaveDFU(Logger logger, DfuConnection device) {
-        device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, ByteBuffer.allocateDirect(0));
+        device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, ByteBuffer.allocate(0));
         // The DFU Leave operation is effectively executed only when a DFU_GETSTATUS request is
         // issued by the host.
         DfuConnectionUtil.waitStatus(logger, device);

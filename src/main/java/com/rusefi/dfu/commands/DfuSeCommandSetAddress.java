@@ -26,6 +26,6 @@ public class DfuSeCommandSetAddress {
     }
 
     protected static ByteBuffer createBuffer(int capacity) {
-        return ByteBuffer.allocateDirect(capacity).order(ByteOrder.LITTLE_ENDIAN);
+        return ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
     }
 }

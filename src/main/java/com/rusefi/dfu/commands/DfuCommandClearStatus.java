@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 public class DfuCommandClearStatus {
     public static void execute(DfuConnection session) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(0);
+        ByteBuffer buffer = ByteBuffer.allocate(0);
         session.sendData(DfuCommmand.CLRSTATUS, (short) 0, buffer);
     }
 }

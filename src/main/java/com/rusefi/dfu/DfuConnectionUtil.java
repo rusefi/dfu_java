@@ -6,9 +6,12 @@ public class DfuConnectionUtil {
     public static void waitStatus(DfuLogic.Logger logger, DfuConnection device) {
         DfuCommandGetStatus.DeviceStatus state = DfuCommandGetStatus.read(logger, device);
         logger.info("First state " + state);
+        long enter = System.currentTimeMillis();
         while (state.getState() == DfuCommandGetStatus.State.DFU_DOWNLOAD_BUSY || state.getState() == DfuCommandGetStatus.State.DFU_ERROR) {
             state = DfuCommandGetStatus.read(logger, device);
             logger.info("Loop state " + state);
+            if (System.currentTimeMillis() - enter > 10 * DfuConnection.SECOND)
+                throw new IllegalStateException("State does not look good");
         }
     }
 

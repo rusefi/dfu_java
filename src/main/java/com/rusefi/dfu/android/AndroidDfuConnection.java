@@ -12,13 +12,17 @@ import static android.hardware.usb.UsbConstants.USB_DIR_OUT;
 
 public class AndroidDfuConnection implements DfuConnection {
     private final UsbDeviceConnection usbDeviceConnection;
+    private final byte interfaceNumber;
+    private final int transferSize;
     private final FlashRange flashRange;
 
     private static final byte REQUEST_TYPE_CLASS = 32;
     private static final byte RECIPIENT_INTERFACE = 0x01;
 
-    public AndroidDfuConnection(UsbDeviceConnection usbDeviceConnection, FlashRange flashRange) {
+    public AndroidDfuConnection(UsbDeviceConnection usbDeviceConnection, byte interfaceNumber, int transferSize, FlashRange flashRange) {
         this.usbDeviceConnection = usbDeviceConnection;
+        this.interfaceNumber = interfaceNumber;
+        this.transferSize = transferSize;
         this.flashRange = flashRange;
     }
 
@@ -29,7 +33,7 @@ public class AndroidDfuConnection implements DfuConnection {
 
     @Override
     public int getTransferSize() {
-        return 0;
+        return transferSize;
     }
 
     @Override
@@ -42,8 +46,8 @@ public class AndroidDfuConnection implements DfuConnection {
         return transfer(usbDeviceConnection, USB_DIR_OUT, command.getValue(), wValue, data);
     }
 
-    private static int transfer(UsbDeviceConnection connection, int direction, int request, short wValue, ByteBuffer byteBuffer) {
+    private int transfer(UsbDeviceConnection connection, int direction, int request, short wValue, ByteBuffer byteBuffer) {
         return connection.controlTransfer(REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE | direction, request,
-                wValue, 0, byteBuffer.array(), byteBuffer.limit(), 500);
+                wValue, interfaceNumber, byteBuffer.array(), byteBuffer.limit(), DFU_TIMEOUT);
     }
 }
