@@ -148,9 +148,6 @@ public class DfuDeviceLocator {
 
                         USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber, transferSize, flashRange);
 
-                        DfuLogic.startup(logger, session);
-
-
                         System.out.printf("info:\n" + usbInfo);
 
                         return session;

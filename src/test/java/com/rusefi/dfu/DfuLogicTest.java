@@ -45,10 +45,6 @@ public class DfuLogicTest {
             }
         };
 
-
-
-
-        DfuLogic.uploadImage(DfuLogic.Logger.VOID, device, image, range);
-
+        DfuLogic.actuallyUploadImage(DfuLogic.Logger.VOID, device, image, range);
     }
 }

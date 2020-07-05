@@ -14,6 +14,12 @@ public class DfuLogic {
     public static final String FLASH_TAG = "Flash";
 
     public static void uploadImage(Logger logger, DfuConnection device, BinaryImage image, FlashRange range) {
+        DfuLogic.startup(logger, device);
+        actuallyUploadImage(logger, device, image, range);
+        DfuLogic.leaveDFU(logger, device);
+    }
+
+    public static void actuallyUploadImage(Logger logger, DfuConnection device, BinaryImage image, FlashRange range) {
         List<Integer> erasePages = range.pagesForSize(image.getImageSize());
         // todo: smarted start address logic
         int eraseAddress = 0x08000000;
