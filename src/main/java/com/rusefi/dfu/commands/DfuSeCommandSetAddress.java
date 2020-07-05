@@ -9,14 +9,14 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class DfuSeCommandSetAddress {
-    public static void execute(DfuLogic.Logger logger, DfuConnection session, int address) {
+    public static void execute(DfuLogic.Logger logger, DfuConnection connection, int address) {
         logger.info(String.format("SetAddress %x", address));
-        ByteBuffer buffer = createSpecialCommandBuffer(DfuSeCommand.SE_SET_ADDRESS, address);
-        session.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_SPECIAL, buffer);
+        ByteBuffer buffer = createSpecialCommandBuffer(connection, DfuSeCommand.SE_SET_ADDRESS, address);
+        connection.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_SPECIAL, buffer);
     }
 
-    protected static ByteBuffer createSpecialCommandBuffer(byte command, int address) {
-        ByteBuffer buffer = createBuffer(5);
+    protected static ByteBuffer createSpecialCommandBuffer(DfuConnection connection, byte command, int address) {
+        ByteBuffer buffer = createBuffer(connection, 5);
         buffer.put(command);
 //        buffer.rewind();
 //        byte[] t = new byte[4];
@@ -25,7 +25,7 @@ public class DfuSeCommandSetAddress {
         return buffer;
     }
 
-    protected static ByteBuffer createBuffer(int capacity) {
-        return ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
+    protected static ByteBuffer createBuffer(DfuConnection connection, int capacity) {
+        return connection.allocateBuffer(capacity).order(ByteOrder.LITTLE_ENDIAN);
     }
 }

@@ -28,6 +28,11 @@ public class DfuLogicTest {
             }
 
             @Override
+            public ByteBuffer allocateBuffer(int capacity) {
+                return ByteBuffer.allocate(capacity);
+            }
+
+            @Override
             public int sendData(DfuCommmand command, short wValue, ByteBuffer data) {
                 return data.limit();
             }

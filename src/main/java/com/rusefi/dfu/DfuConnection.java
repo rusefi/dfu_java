@@ -13,4 +13,6 @@ public interface DfuConnection {
     int receiveData(DfuCommmand command, short wValue, ByteBuffer data);
 
     int sendData(DfuCommmand command, short wValue, ByteBuffer data);
+
+    ByteBuffer allocateBuffer(int capacity);
 }

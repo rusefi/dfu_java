@@ -13,9 +13,9 @@ public class DfuCommandGetStatus {
 
     private final static AtomicInteger STATUS_COUNTER = new AtomicInteger();
 
-    public static DeviceStatus read(DfuLogic.Logger logger, DfuConnection session) {
-        ByteBuffer buffer = ByteBuffer.allocate(PACKET_SIZE);
-        int count = session.receiveData(DfuCommmand.GETSTATUS, (short) 0, buffer);
+    public static DeviceStatus read(DfuLogic.Logger logger, DfuConnection connection) {
+        ByteBuffer buffer = connection.allocateBuffer(PACKET_SIZE);
+        int count = connection.receiveData(DfuCommmand.GETSTATUS, (short) 0, buffer);
         if (count != PACKET_SIZE)
             return new DeviceStatus(null, State.DFU_ERROR);
         buffer.rewind();

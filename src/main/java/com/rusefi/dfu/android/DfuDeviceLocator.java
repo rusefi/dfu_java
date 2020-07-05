@@ -42,7 +42,7 @@ public class DfuDeviceLocator {
                     throw new IllegalStateException("Unexpected USB_DT_DFU");
                 int transferSize = rawDescs[69] * 256 + rawDescs[68];
 
-                return new Result(connection, flashRange, transferSize);
+                return new Result(connection, interfaceIndex, flashRange, transferSize);
             }
         }
         return null;
@@ -50,11 +50,13 @@ public class DfuDeviceLocator {
 
     public static class Result {
         private final UsbDeviceConnection connection;
+        private final int interfaceIndex;
         private final FlashRange flashRange;
         private final int transferSize;
 
-        public Result(UsbDeviceConnection connection, FlashRange flashRange, int transferSize) {
+        public Result(UsbDeviceConnection connection, int interfaceIndex, FlashRange flashRange, int transferSize) {
             this.connection = connection;
+            this.interfaceIndex = interfaceIndex;
             this.flashRange = flashRange;
             this.transferSize = transferSize;
         }
@@ -65,6 +67,10 @@ public class DfuDeviceLocator {
 
         public FlashRange getFlashRange() {
             return flashRange;
+        }
+
+        public int getInterfaceIndex() {
+            return interfaceIndex;
         }
 
         public int getTransferSize() {

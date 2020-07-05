@@ -20,6 +20,7 @@ public class DfuLogic {
     }
 
     public static void actuallyUploadImage(Logger logger, DfuConnection device, BinaryImage image, FlashRange range) {
+        long enter = System.currentTimeMillis();
         List<Integer> erasePages = range.pagesForSize(image.getImageSize());
         // todo: smarted start address logic
         int eraseAddress = 0x08000000;
@@ -33,7 +34,7 @@ public class DfuLogic {
             DfuSeCommandSetAddress.execute(logger, device, device.getFlashRange().getBaseAddress() + offset);
             DfuConnectionUtil.waitStatus(logger, device);
 
-            ByteBuffer buffer = ByteBuffer.allocate(device.getTransferSize());
+            ByteBuffer buffer = device.allocateBuffer(device.getTransferSize());
             // last transfer would usually be smaller than transfer size
             int size = Math.min(device.getTransferSize(), image.getImage().length - offset);
             buffer.put(image.getImage(), offset, size);
@@ -42,13 +43,16 @@ public class DfuLogic {
             // "The Write memory operation is effectively executed only when a DFU_GETSTATUS request is issued by the host. "
             DfuConnectionUtil.waitStatus(logger, device);
         }
+        logger.info("Uploaded " + image.getImage().length + " bytes in " + (System.currentTimeMillis() - enter) + " ms");
     }
 
     public static void leaveDFU(Logger logger, DfuConnection device) {
-        device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, ByteBuffer.allocate(0));
+        logger.info("Leaving DFU");
+        device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, device.allocateBuffer(0));
         // The DFU Leave operation is effectively executed only when a DFU_GETSTATUS request is
         // issued by the host.
         DfuConnectionUtil.waitStatus(logger, device);
+        logger.info("DONE");
     }
 
     public static void startup(Logger logger, DfuConnection device) {

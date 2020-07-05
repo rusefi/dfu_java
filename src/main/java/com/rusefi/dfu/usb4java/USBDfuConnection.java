@@ -45,6 +45,12 @@ public class USBDfuConnection implements DfuConnection {
         return transfer(command, wValue, data, LibUsb.ENDPOINT_OUT);
     }
 
+    @Override
+    public ByteBuffer allocateBuffer(int capacity) {
+        // usb4java requires direct buffer
+        return ByteBuffer.allocateDirect(capacity);
+    }
+
     private int transfer(DfuCommmand command, short wValue, ByteBuffer data, byte mode) {
         return LibUsb.controlTransfer(
                 deviceHandle,
