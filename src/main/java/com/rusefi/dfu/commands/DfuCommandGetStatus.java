@@ -1,14 +1,14 @@
 package com.rusefi.dfu.commands;
 
 import com.rusefi.dfu.DfuCommmand;
-import com.rusefi.dfu.usb4java.USBDfuConnection;
+import com.rusefi.dfu.DfuConnection;
 
 import java.nio.ByteBuffer;
 
 public class DfuCommandGetStatus {
     private static final int PACKET_SIZE = 6;
 
-    public static State read(USBDfuConnection session) {
+    public static State read(DfuConnection session) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(PACKET_SIZE);
         int count = session.receiveData(DfuCommmand.GETSTATUS, (short) 0, buffer);
         if (count == 0)

@@ -2,7 +2,6 @@ package com.rusefi.dfu;
 
 import com.rusefi.dfu.commands.DfuSeCommandErasePage;
 import com.rusefi.dfu.commands.DfuSeCommandSetAddress;
-import com.rusefi.dfu.usb4java.USBDfuConnection;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -15,7 +14,7 @@ public class DfuLogic {
     public static final byte USB_DT_DFU = 0x21;
     public static final String FLASH_TAG = "Flash";
 
-    static void uploadImage(USBDfuConnection device, HexImage image, FlashRange range) {
+    static void uploadImage(DfuConnection device, HexImage image, FlashRange range) {
         List<Integer> erasePages = range.pagesForSize(image.getImageSize());
         // todo: smarted start address logic
         int eraseAddress = 0x08000000;

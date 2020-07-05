@@ -1,9 +1,9 @@
 package com.rusefi.dfu.commands;
 
 import com.rusefi.dfu.DfuCommmand;
+import com.rusefi.dfu.DfuConnection;
 import com.rusefi.dfu.DfuSeCommand;
 import com.rusefi.dfu.LogUtil;
-import com.rusefi.dfu.usb4java.USBDfuConnection;
 import org.apache.commons.logging.Log;
 
 import java.nio.ByteBuffer;
@@ -12,7 +12,7 @@ import java.nio.ByteOrder;
 public class DfuSeCommandSetAddress {
     private static final Log log = LogUtil.getLog(DfuSeCommandSetAddress.class);
 
-    public static void execute(USBDfuConnection session, int address) {
+    public static void execute(DfuConnection session, int address) {
         log.info(String.format("SetAddress %x", address));
         ByteBuffer buffer = createSpecialCommandBuffer(DfuSeCommand.SE_SET_ADDRESS, address);
         session.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_SPECIAL, buffer);

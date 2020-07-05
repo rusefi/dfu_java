@@ -25,7 +25,7 @@ public class DfuImage implements BinaryImage {
     private int TargetSize;
     private int NumElements;
 
-    public void read(String fileName) {
+    public DfuImage read(String fileName) {
         File file = new File(fileName);
         this.content = new byte[(int) file.length()];
         FileInputStream fileInputStream;
@@ -37,6 +37,7 @@ public class DfuImage implements BinaryImage {
             throw new IllegalStateException(e);
         }
         verifyFile();
+        return this;
     }
 
     @Override
