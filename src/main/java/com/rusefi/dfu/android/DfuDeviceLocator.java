@@ -5,8 +5,6 @@ import android.hardware.usb.*;
 import com.rusefi.dfu.DfuLogic;
 import com.rusefi.dfu.DfuSeFlashDescriptor;
 import com.rusefi.dfu.FlashRange;
-//import com.rusefi.dfu.LogUtil;
-//import org.apache.commons.logging.Log;
 
 public class DfuDeviceLocator {
 //    private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);

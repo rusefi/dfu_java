@@ -1,7 +1,6 @@
 package com.rusefi.dfu;
 
-import com.rusefi.dfu.commands.DfuSeCommandErasePage;
-import com.rusefi.dfu.commands.DfuSeCommandSetAddress;
+import com.rusefi.dfu.commands.*;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -14,19 +13,19 @@ public class DfuLogic {
     public static final byte USB_DT_DFU = 0x21;
     public static final String FLASH_TAG = "Flash";
 
-    public static void uploadImage(DfuConnection device, BinaryImage image, FlashRange range) {
+    public static void uploadImage(Logger logger, DfuConnection device, BinaryImage image, FlashRange range) {
         List<Integer> erasePages = range.pagesForSize(image.getImageSize());
         // todo: smarted start address logic
         int eraseAddress = 0x08000000;
         for (Integer erasePage : erasePages) {
-            DfuSeCommandErasePage.execute(device, eraseAddress);
+            DfuSeCommandErasePage.execute(logger, device, eraseAddress);
             eraseAddress += erasePage;
         }
-        System.out.println(String.format("Erased up to %x", eraseAddress));
+        logger.info(String.format("Erased up to %x", eraseAddress));
 
         for (int offset = 0; offset < image.getImage().length; offset += device.getTransferSize()) {
-            DfuSeCommandSetAddress.execute(device, device.getFlashRange().getBaseAddress() + offset);
-            DfuConnectionUtil.waitStatus(device);
+            DfuSeCommandSetAddress.execute(logger, device, device.getFlashRange().getBaseAddress() + offset);
+            DfuConnectionUtil.waitStatus(logger, device);
 
             ByteBuffer buffer = ByteBuffer.allocateDirect(device.getTransferSize());
             // last transfer would usually be smaller than transfer size
@@ -35,7 +34,49 @@ public class DfuLogic {
             device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, buffer);
             // AN3156 USB DFU protocol used in the STM32 bootloader
             // "The Write memory operation is effectively executed only when a DFU_GETSTATUS request is issued by the host. "
-            DfuConnectionUtil.waitStatus(device);
+            DfuConnectionUtil.waitStatus(logger, device);
         }
+    }
+
+    public static void leaveDFU(Logger logger, DfuConnection device) {
+        device.sendData(DfuCommmand.DNLOAD, DfuSeCommand.W_DNLOAD, ByteBuffer.allocateDirect(0));
+        // The DFU Leave operation is effectively executed only when a DFU_GETSTATUS request is
+        // issued by the host.
+        DfuConnectionUtil.waitStatus(logger, device);
+    }
+
+    public static void startup(Logger logger, DfuConnection device) {
+        DfuCommandGetStatus.State state = DfuCommandGetStatus.read(logger, device);
+        logger.info("DFU state: " + state);
+        switch (state) {
+            case DFU_IDLE:
+                // best status
+                break;
+            case DFU_ERROR:
+                DfuCommandClearStatus.execute(device);
+                break;
+            case DFU_DOWNLOAD_SYNC:
+            case DFU_DOWNLOAD_IDLE:
+            case DFU_UPLOAD_IDLE:
+            case DFU_MANIFEST_SYNC:
+            case DFU_DOWNLOAD_BUSY:
+            case DFU_MANIFEST:
+                DfuCommandAbort.execute(device);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected state " + state);
+        }
+        state = DfuCommandGetStatus.read(logger, device);
+        if (state != DfuCommandGetStatus.State.DFU_IDLE)
+            throw new IllegalStateException("Not idle on start-up");
+    }
+
+    public interface Logger {
+        Logger VOID = message -> {
+        };
+
+        Logger CONSOLE = System.out::println;
+
+        void info(String message);
     }
 }

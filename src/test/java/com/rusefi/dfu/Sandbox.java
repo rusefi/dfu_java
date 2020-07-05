@@ -14,7 +14,8 @@ public class Sandbox {
     public static void main(String[] args) throws IOException, IntelHexException {
         log.info("Hello sandbox");
 
-        USBDfuConnection device = DfuDeviceLocator.findDevice();
+        DfuLogic.Logger logger = DfuLogic.Logger.CONSOLE;
+        USBDfuConnection device = DfuDeviceLocator.findDevice(logger);
         if (device == null) {
             System.err.println("No DFU devices found");
             return;
@@ -22,7 +23,8 @@ public class Sandbox {
 
         HexImage image = HexImage.loadHexToBuffer(new FileInputStream("rusefi.hex"), device.getFlashRange());
 
-        DfuLogic.uploadImage(device, image, device.getFlashRange());
+        DfuLogic.uploadImage(logger, device, image, device.getFlashRange());
+        DfuLogic.leaveDFU(logger, device);
 
         log.info("STM32 DFU " + device);
     }

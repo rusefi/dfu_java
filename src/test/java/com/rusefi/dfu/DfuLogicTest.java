@@ -48,7 +48,7 @@ public class DfuLogicTest {
 
 
 
-        DfuLogic.uploadImage(device, image, range);
+        DfuLogic.uploadImage(DfuLogic.Logger.VOID, device, image, range);
 
     }
 }

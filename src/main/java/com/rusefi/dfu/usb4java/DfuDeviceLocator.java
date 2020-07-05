@@ -1,12 +1,6 @@
 package com.rusefi.dfu.usb4java;
 
-import com.rusefi.dfu.DfuLogic;
-import com.rusefi.dfu.DfuSeFlashDescriptor;
-import com.rusefi.dfu.FlashRange;
-import com.rusefi.dfu.LogUtil;
-import com.rusefi.dfu.commands.DfuCommandAbort;
-import com.rusefi.dfu.commands.DfuCommandClearStatus;
-import com.rusefi.dfu.commands.DfuCommandGetStatus;
+import com.rusefi.dfu.*;
 import org.apache.commons.logging.Log;
 import org.usb4java.*;
 
@@ -27,11 +21,11 @@ public class DfuDeviceLocator {
         return context;
     }
 
-    public static USBDfuConnection findDevice() {
-        return findDevice(openContext(), DfuLogic.ST_VENDOR, (short) DfuLogic.ST_DFU_PRODUCT);
+    public static USBDfuConnection findDevice(DfuLogic.Logger logger) {
+        return findDevice(logger, openContext(), DfuLogic.ST_VENDOR, (short) DfuLogic.ST_DFU_PRODUCT);
     }
 
-    private static USBDfuConnection findDevice(Context context, short vendorId, short productId) {
+    private static USBDfuConnection findDevice(DfuLogic.Logger logger, Context context, short vendorId, short productId) {
         // Read the USB device list
         DeviceList list = new DeviceList();
         int result = LibUsb.getDeviceList(context, list);
@@ -48,7 +42,7 @@ public class DfuDeviceLocator {
                 if (result != LibUsb.SUCCESS)
                     throw new LibUsbException("getDeviceDescriptor", result);
                 if (descriptor.idVendor() == vendorId && descriptor.idProduct() == productId) {
-                    return findDfuInterface(device, descriptor);
+                    return findDfuInterface(logger, device, descriptor);
                 }
             }
         } finally {
@@ -64,7 +58,7 @@ public class DfuDeviceLocator {
         return (((x & 0xff) << 8) | ((x >> 8) & 0xff));
     }
 
-    public static USBDfuConnection findDfuInterface(Device device, DeviceDescriptor deviceDescriptor) {
+    public static USBDfuConnection findDfuInterface(DfuLogic.Logger logger, Device device, DeviceDescriptor deviceDescriptor) {
         byte numConfigurations = deviceDescriptor.bNumConfigurations();
 
         appendInfo(numConfigurations + " configuration(s)");
@@ -154,29 +148,7 @@ public class DfuDeviceLocator {
 
                         USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber, transferSize, flashRange);
 
-                        DfuCommandGetStatus.State state = DfuCommandGetStatus.read(session);
-                        log.info("DFU state: " + state);
-                        switch (state) {
-                            case DFU_IDLE:
-                                // best status
-                                break;
-                            case DFU_ERROR:
-                                DfuCommandClearStatus.execute(session);
-                                break;
-                            case DFU_DOWNLOAD_SYNC:
-                            case DFU_DOWNLOAD_IDLE:
-                            case DFU_UPLOAD_IDLE:
-                            case DFU_MANIFEST_SYNC:
-                            case DFU_DOWNLOAD_BUSY:
-                            case DFU_MANIFEST:
-                                DfuCommandAbort.execute(session);
-                                break;
-                            default:
-                                throw new IllegalStateException("Unexpected state " + state);
-                        }
-                        state = DfuCommandGetStatus.read(session);
-                        if (state != DfuCommandGetStatus.State.DFU_IDLE)
-                            throw new IllegalStateException("Not idle");
+                        DfuLogic.startup(logger, session);
 
 
                         System.out.printf("info:\n" + usbInfo);
