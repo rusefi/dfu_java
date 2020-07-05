@@ -7,9 +7,15 @@ import com.rusefi.dfu.FlashRange;
 
 import java.nio.ByteBuffer;
 
+import static android.hardware.usb.UsbConstants.USB_DIR_IN;
+import static android.hardware.usb.UsbConstants.USB_DIR_OUT;
+
 public class AndroidDfuConnection implements DfuConnection {
     private final UsbDeviceConnection usbDeviceConnection;
     private final FlashRange flashRange;
+
+    private static final byte REQUEST_TYPE_CLASS = 32;
+    private static final byte RECIPIENT_INTERFACE = 0x01;
 
     public AndroidDfuConnection(UsbDeviceConnection usbDeviceConnection, FlashRange flashRange) {
         this.usbDeviceConnection = usbDeviceConnection;
@@ -28,12 +34,16 @@ public class AndroidDfuConnection implements DfuConnection {
 
     @Override
     public int receiveData(DfuCommmand command, short wValue, ByteBuffer data) {
-        //return usbDeviceConnection.controlTransfer();
-        return 0;
+        return transfer(usbDeviceConnection, USB_DIR_IN, command.getValue(), wValue, data);
     }
 
     @Override
     public int sendData(DfuCommmand command, short wValue, ByteBuffer data) {
-        return 0;
+        return transfer(usbDeviceConnection, USB_DIR_OUT, command.getValue(), wValue, data);
+    }
+
+    private static int transfer(UsbDeviceConnection connection, int direction, int request, short wValue, ByteBuffer byteBuffer) {
+        return connection.controlTransfer(REQUEST_TYPE_CLASS | RECIPIENT_INTERFACE | direction, request,
+                wValue, 0, byteBuffer.array(), byteBuffer.limit(), 500);
     }
 }
