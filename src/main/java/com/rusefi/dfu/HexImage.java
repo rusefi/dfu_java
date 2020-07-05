@@ -6,6 +6,7 @@ import cz.jaybee.intelhex.Parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class HexImage implements BinaryImage {
@@ -19,8 +20,9 @@ public class HexImage implements BinaryImage {
         this.maxOffset = maxOffset;
     }
 
-    static HexImage loadHexToBuffer(InputStream is, FlashRange range) throws IntelHexException, IOException {
-        byte[] image = new byte[range.getTotalLength()];
+    static HexImage loadHexToBuffer(InputStream is, FlashRange flashRange) throws IntelHexException, IOException {
+        Objects.requireNonNull(flashRange, "flashRange");
+        byte[] image = new byte[flashRange.getTotalLength()];
 
         // create IntelHexParserObject
         Parser ihp = new Parser(is);
@@ -37,12 +39,12 @@ public class HexImage implements BinaryImage {
 
                 maxOffset.set((int) Math.max(maxOffset.get(), address + data.length));
 
-                if (address < range.getBaseAddress() || address + data.length > range.getBaseAddress() + range.getTotalLength())
-                    throw new IllegalStateException(String.format("Image data out of range: %x@%x not withiin %s",
+                if (address < flashRange.getBaseAddress() || address + data.length > flashRange.getBaseAddress() + flashRange.getTotalLength())
+                    throw new IllegalStateException(String.format("Image data out of range: %x@%x not within %s",
                             data.length,
                             address,
-                            range.toString()));
-                System.arraycopy(data, 0, image, (int) (address - range.getBaseAddress()), data.length);
+                            flashRange.toString()));
+                System.arraycopy(data, 0, image, (int) (address - flashRange.getBaseAddress()), data.length);
             }
 
             @Override

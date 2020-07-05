@@ -52,11 +52,12 @@ public class DfuLogic {
     }
 
     public static void startup(Logger logger, DfuConnection device) {
-        DfuCommandGetStatus.State state = DfuCommandGetStatus.read(logger, device);
+        DfuCommandGetStatus.DeviceStatus state = DfuCommandGetStatus.read(logger, device);
         logger.info("DFU state: " + state);
-        switch (state) {
+        switch (state.getState()) {
             case DFU_IDLE:
                 // best status
+                logger.info("startup status " + state.getStatus());
                 break;
             case DFU_ERROR:
                 DfuCommandClearStatus.execute(device);
@@ -73,8 +74,8 @@ public class DfuLogic {
                 throw new IllegalStateException("Unexpected state " + state);
         }
         state = DfuCommandGetStatus.read(logger, device);
-        if (state != DfuCommandGetStatus.State.DFU_IDLE)
-            throw new IllegalStateException("Not idle on start-up");
+        if (state.getState() != DfuCommandGetStatus.State.DFU_IDLE)
+            throw new IllegalStateException("Not idle on start-up: " + state.getState());
     }
 
     public interface Logger {

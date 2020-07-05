@@ -4,11 +4,11 @@ import com.rusefi.dfu.commands.DfuCommandGetStatus;
 
 public class DfuConnectionUtil {
     public static void waitStatus(DfuLogic.Logger logger, DfuConnection device) {
-        DfuCommandGetStatus.State state = DfuCommandGetStatus.read(logger, device);
-        System.out.println(" state " + state);
-        while (state == DfuCommandGetStatus.State.DFU_DOWNLOAD_BUSY || state == DfuCommandGetStatus.State.DFU_ERROR) {
+        DfuCommandGetStatus.DeviceStatus state = DfuCommandGetStatus.read(logger, device);
+        logger.info("First state " + state);
+        while (state.getState() == DfuCommandGetStatus.State.DFU_DOWNLOAD_BUSY || state.getState() == DfuCommandGetStatus.State.DFU_ERROR) {
             state = DfuCommandGetStatus.read(logger, device);
-            System.out.println(" state " + state);
+            logger.info("Loop state " + state);
         }
     }
 

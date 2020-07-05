@@ -7,6 +7,7 @@ import org.usb4java.DeviceHandle;
 import org.usb4java.LibUsb;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public class USBDfuConnection implements DfuConnection {
     private final DeviceHandle deviceHandle;
@@ -17,6 +18,7 @@ public class USBDfuConnection implements DfuConnection {
     public USBDfuConnection(DeviceHandle deviceHandle, byte interfaceNumber, int transferSize, FlashRange flashRange) {
         if (transferSize == 0)
             throw new IllegalArgumentException("transfer size not detected");
+        Objects.requireNonNull(flashRange, "flashRange");
         this.deviceHandle = deviceHandle;
         this.interfaceNumber = interfaceNumber;
         this.transferSize = transferSize;

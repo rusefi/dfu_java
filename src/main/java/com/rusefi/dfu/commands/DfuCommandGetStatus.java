@@ -6,24 +6,28 @@ import com.rusefi.dfu.DfuConnectionUtil;
 import com.rusefi.dfu.DfuLogic;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DfuCommandGetStatus {
     private static final int PACKET_SIZE = 6;
 
-    public static State read(DfuLogic.Logger logger, DfuConnection session) {
+    private final static AtomicInteger STATUS_COUNTER = new AtomicInteger();
+
+    public static DeviceStatus read(DfuLogic.Logger logger, DfuConnection session) {
         ByteBuffer buffer = ByteBuffer.allocateDirect(PACKET_SIZE);
         int count = session.receiveData(DfuCommmand.GETSTATUS, (short) 0, buffer);
         if (count != PACKET_SIZE)
-            return State.DFU_ERROR;
+            return new DeviceStatus(null, State.DFU_ERROR);
         buffer.rewind();
         Status status = Status.valueOf(buffer.get()); // status
         int timeout = buffer.get();
         timeout = timeout | (buffer.get() << 8);
         timeout = timeout | (buffer.get() << 8);
-        System.out.println("During " + status + " timeout=" + timeout);
-        byte state = buffer.get();
+        byte stateCode = buffer.get();
         DfuConnectionUtil.sleep(logger, timeout);
-        return State.valueOf(state);
+        State state = State.valueOf(stateCode);
+        logger.info(STATUS_COUNTER.incrementAndGet() + " GETSTATUS " + status + " timeout=" + timeout + " " + state);
+        return new DeviceStatus(status, state);
     }
 
     public enum Status {
@@ -86,6 +90,32 @@ public class DfuCommandGetStatus {
                 }
             }
             return null;
+        }
+    }
+
+    public static class DeviceStatus {
+        private final Status status;
+        private final State state;
+
+        public DeviceStatus(Status status, State state) {
+            this.status = status;
+            this.state = state;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public State getState() {
+            return state;
+        }
+
+        @Override
+        public String toString() {
+            return "DeviceStatus{" +
+                    "status=" + status +
+                    ", state=" + state +
+                    '}';
         }
     }
 }

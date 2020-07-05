@@ -31,8 +31,8 @@ public class DfuDeviceLocator {
 
                 UsbDeviceConnection connection = usbManager.openDevice(dfuDevice);
 
-                UsbInterface intf = dfuDevice.getInterface(0);
-                connection.claimInterface(intf, true);
+                //UsbInterface intf = dfuDevice.getInterface(0);
+                connection.claimInterface(usbInterface, true);
 
                 byte[] rawDescs = connection.getRawDescriptors();
                 // todo: need proper handling of this rawDesc area since I have no clue what's the format
