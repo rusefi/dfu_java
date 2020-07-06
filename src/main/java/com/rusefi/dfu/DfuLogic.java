@@ -30,7 +30,7 @@ public class DfuLogic {
         }
         logger.info(String.format("Erased up to %x", eraseAddress));
 
-        for (int offset = 0; offset < image.getImage().length; offset += device.getTransferSize()) {
+        for (int offset = 0; offset < image.getImageSize(); offset += device.getTransferSize()) {
             DfuSeCommandSetAddress.execute(logger, device, device.getFlashRange().getBaseAddress() + offset);
             DfuConnectionUtil.waitStatus(logger, device);
 
