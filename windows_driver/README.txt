@@ -1,3 +1,28 @@
+Windows 10:
+
+1) to allow unsigned driver:
+bcdedit /set nointegritychecks off
+reboot
+install driver
+bcdedit /set nointegritychecks on
+
+2) to override default driver:
+Device manager,
+right-click on the existing entry,
+Update driver,
+Browse my computer ...,
+Let me pick ...,
+Have disk,
+Browse to the driver's folder,
+Select its inf file,
+Open,
+OK,
+select the correct hardware from the list if there are multiple entries shown,
+Next,
+then it will install even if it older or less suitable.
+
+
+
 libusb 1.0 (WinUSB) Windows USB driver for 32 and 64 bit platforms.
 
 This directory contains the necessary files to install a USB device as a WinUSB
