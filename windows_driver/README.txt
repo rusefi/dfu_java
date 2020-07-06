@@ -1,6 +1,8 @@
 Windows 10:
 
 1) to allow unsigned driver:
+cmd
+Run As Administrator
 bcdedit /set nointegritychecks off
 reboot
 install driver
