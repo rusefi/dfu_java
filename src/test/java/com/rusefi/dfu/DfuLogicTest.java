@@ -38,17 +38,7 @@ public class DfuLogicTest {
             }
         };
 
-        BinaryImage image = new BinaryImage() {
-            @Override
-            public byte[] getImage() {
-                return new byte[150];
-            }
-
-            @Override
-            public int getImageSize() {
-                return getImage().length;
-            }
-        };
+        BinaryImage image = () -> new byte[150];
 
         DfuLogic.actuallyUploadImage(DfuLogic.Logger.VOID, device, image, range);
     }

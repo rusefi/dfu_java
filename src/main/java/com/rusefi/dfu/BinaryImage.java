@@ -3,5 +3,7 @@ package com.rusefi.dfu;
 public interface BinaryImage {
     byte[] getImage();
 
-    int getImageSize();
+    default int getImageSize() {
+        return getImage().length;
+    }
 }

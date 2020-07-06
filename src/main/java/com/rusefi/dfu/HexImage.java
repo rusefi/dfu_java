@@ -6,18 +6,15 @@ import cz.jaybee.intelhex.Parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class HexImage implements BinaryImage {
     private final byte[] image;
-    private final int totalBytes;
-    private final int maxOffset;
 
-    public HexImage(byte[] image, int totalBytes, int maxOffset) {
+    public HexImage(byte[] image) {
         this.image = image;
-        this.totalBytes = totalBytes;
-        this.maxOffset = maxOffset;
     }
 
     static HexImage loadHexToBuffer(InputStream is, FlashRange flashRange) throws IntelHexException, IOException {
@@ -54,7 +51,8 @@ public class HexImage implements BinaryImage {
         });
         ihp.parse();
 
-        return new HexImage(image, totalBytesReceived.get(), maxOffset.get());
+        int imageSize = maxOffset.get() - flashRange.getBaseAddress();
+        return new HexImage(Arrays.copyOfRange(image, 0, imageSize));
     }
 
     @Override
@@ -63,16 +61,9 @@ public class HexImage implements BinaryImage {
     }
 
     @Override
-    public int getImageSize() {
-        return totalBytes;
-    }
-
-    @Override
     public String toString() {
         return "HexImage{" +
                 "image=" + image.length +
-                ", totalBytes=" + totalBytes +
-                ", maxOffset=" + maxOffset +
                 '}';
     }
 }

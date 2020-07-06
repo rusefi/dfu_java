@@ -45,11 +45,6 @@ public class DfuImage implements BinaryImage {
         return content;
     }
 
-    @Override
-    public int getImageSize() {
-        return content.length;
-    }
-
     private static int calculateCRC(byte[] FileData) {
         int crc = -1;
         for (int i = 0; i < FileData.length - 4; i++) {
