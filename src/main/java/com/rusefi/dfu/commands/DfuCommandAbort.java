@@ -1,13 +1,13 @@
 package com.rusefi.dfu.commands;
 
 import com.rusefi.dfu.DfuCommmand;
-import com.rusefi.dfu.usb4java.USBDfuConnection;
+import com.rusefi.dfu.DfuConnection;
 
 import java.nio.ByteBuffer;
 
 public class DfuCommandAbort {
-    public static void execute(USBDfuConnection session) {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(0);
-        session.sendData(DfuCommmand.ABORT, (short) 0, buffer);
+    public static void execute(DfuConnection connection) {
+        ByteBuffer buffer = connection.allocateBuffer(0);
+        connection.sendData(DfuCommmand.ABORT, (short) 0, buffer);
     }
 }

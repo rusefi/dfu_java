@@ -1,0 +1,81 @@
+1 configuration(s)
+Config: Configuration Descriptor:
+  bLength                  9
+  bDescriptorType          2
+  wTotalLength            54
+  bNumInterfaces           1
+  bConfigurationValue      1
+  iConfiguration           0
+  bmAttributes          0xc0
+    Self Powered
+  bMaxPower              100mA
+  extralen                 0
+  extra:
+
+Interface:
+  numAltsetting          4
+Interface Descriptor:
+  bLength                  9
+  bDescriptorType          4
+  bInterfaceNumber         0
+  bAlternateSetting        0
+  bNumEndpoints            0
+  bInterfaceClass        254 Application
+  bInterfaceSubClass       1
+  bInterfaceProtocol       2
+  iInterface               4
+  extralen                 0
+  extra:
+
+Interface Descriptor:
+  bLength                  9
+  bDescriptorType          4
+  bInterfaceNumber         0
+  bAlternateSetting        1
+  bNumEndpoints            0
+  bInterfaceClass        254 Application
+  bInterfaceSubClass       1
+  bInterfaceProtocol       2
+  iInterface               5
+  extralen                 0
+  extra:
+
+Interface Descriptor:
+  bLength                  9
+  bDescriptorType          4
+  bInterfaceNumber         0
+  bAlternateSetting        2
+  bNumEndpoints            0
+  bInterfaceClass        254 Application
+  bInterfaceSubClass       1
+  bInterfaceProtocol       2
+  iInterface               6
+  extralen                 0
+  extra:
+
+Interface Descriptor:
+ bLength                  9
+  bDescriptorType          4
+  bInterfaceNumber         0
+  bAlternateSetting        3
+  bNumEndpoints            0
+  bInterfaceClass        254 Application
+  bInterfaceSubClass       1
+  bInterfaceProtocol       2
+  iInterface               7
+  extralen                 9
+  extra:
+    09 21 0b ff 00 00 08 1a 01
+1 interface(s)
+Interface #0 setting #0:
+Setting 0: 0 4 class fe, subclass 1, protocol: 2
+Descriptor @Internal Flash  /0x08000000/04*016Kg,01*064Kg,07*128Kg
+Interface #0 setting #1:
+Setting 1: 0 5 class fe, subclass 1, protocol: 2
+Descriptor @Option Bytes  /0x1FFFC000/01*016 e
+Interface #0 setting #2:
+Setting 2: 0 6 class fe, subclass 1, protocol: 2
+Descriptor @OTP Memory /0x1FFF7800/01*512 e,01*016 e
+Interface #0 setting #3:
+Setting 3: 0 7 class fe, subclass 1, protocol: 2
+Descriptor @Device Feature/0xFFFF0000/01*004 e

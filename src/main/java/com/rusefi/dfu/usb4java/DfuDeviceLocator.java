@@ -1,12 +1,6 @@
 package com.rusefi.dfu.usb4java;
 
-import com.rusefi.dfu.DfuLogic;
-import com.rusefi.dfu.DfuSeFlashDescriptor;
-import com.rusefi.dfu.FlashRange;
-import com.rusefi.dfu.LogUtil;
-import com.rusefi.dfu.commands.DfuCommandAbort;
-import com.rusefi.dfu.commands.DfuCommandClearStatus;
-import com.rusefi.dfu.commands.DfuCommandGetStatus;
+import com.rusefi.dfu.*;
 import org.apache.commons.logging.Log;
 import org.usb4java.*;
 
@@ -15,6 +9,8 @@ import java.nio.ByteBuffer;
 public class DfuDeviceLocator {
 
     private static final Log log = LogUtil.getLog(DfuDeviceLocator.class);
+
+    private static StringBuilder usbInfo = new StringBuilder();
 
     public static Context openContext() {
         Context context = new Context();
@@ -25,11 +21,11 @@ public class DfuDeviceLocator {
         return context;
     }
 
-    public static USBDfuConnection findDevice() {
-        return findDevice(openContext(), DfuLogic.ST_VENDOR, DfuLogic.ST_DFU_PRODUCT);
+    public static USBDfuConnection findDevice(DfuLogic.Logger logger) {
+        return findDevice(logger, openContext(), DfuLogic.ST_VENDOR, (short) DfuLogic.ST_DFU_PRODUCT);
     }
 
-    private static USBDfuConnection findDevice(Context context, short vendorId, short productId) {
+    private static USBDfuConnection findDevice(DfuLogic.Logger logger, Context context, short vendorId, short productId) {
         // Read the USB device list
         DeviceList list = new DeviceList();
         int result = LibUsb.getDeviceList(context, list);
@@ -46,7 +42,7 @@ public class DfuDeviceLocator {
                 if (result != LibUsb.SUCCESS)
                     throw new LibUsbException("getDeviceDescriptor", result);
                 if (descriptor.idVendor() == vendorId && descriptor.idProduct() == productId) {
-                    return findDfuInterface(device, descriptor);
+                    return findDfuInterface(logger, device, descriptor);
                 }
             }
         } finally {
@@ -62,13 +58,14 @@ public class DfuDeviceLocator {
         return (((x & 0xff) << 8) | ((x >> 8) & 0xff));
     }
 
-    public static USBDfuConnection findDfuInterface(Device device, DeviceDescriptor deviceDescriptor) {
+    public static USBDfuConnection findDfuInterface(DfuLogic.Logger logger, Device device, DeviceDescriptor deviceDescriptor) {
         byte numConfigurations = deviceDescriptor.bNumConfigurations();
-        log.info(numConfigurations + " configuration(s)");
+
+        appendInfo(numConfigurations + " configuration(s)");
 
         DeviceHandle deviceHandle = open(device);
         int transferSize = 0;
-        FlashRange flashRange = null;
+        FlashRange flashRange;
 
         for (int configurationIndex = 0; configurationIndex < numConfigurations; configurationIndex++) {
             ConfigDescriptor config = new ConfigDescriptor();
@@ -77,35 +74,14 @@ public class DfuDeviceLocator {
                 throw new LibUsbException("getConfigDescriptor", result);
             }
 
-            System.out.println("Config " + config);
-            System.out.println("Config Done");
+            appendInfo("Config: " + config);
 
             byte numInterfaces = config.bNumInterfaces();
-            log.info(numInterfaces + " interface(s)");
+            appendInfo(numInterfaces + " interface(s)");
 
-            for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
-                Interface iface = config.iface()[interfaceIndex];
+            transferSize = scanTransferSize(config, numInterfaces);
 
-                for (int s = 0; s < iface.numAltsetting(); s++) {
-                    InterfaceDescriptor setting = iface.altsetting()[s];
-                    System.out.println("setting " + setting);
-
-                    ByteBuffer extra = setting.extra();
-
-                    if (extra.limit() > 2) {
-                        int len = extra.get();
-                        byte type = extra.get();
-                        if (type == DfuLogic.USB_DT_DFU) {
-                            System.out.println(len + " " + type);
-                            extra.get(); // bmAttributes
-                            extra.get(); // wDetachTimeOut
-                            extra.get();
-                            transferSize = swap16(extra.getShort());
-                            System.out.println("transferSize " + transferSize);
-                        }
-                    }
-                }
-            }
+            scanDescriptor(deviceHandle, config, numInterfaces);
 
             for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
                 Interface iface = config.iface()[interfaceIndex];
@@ -113,61 +89,91 @@ public class DfuDeviceLocator {
                 for (int s = 0; s < iface.numAltsetting(); s++) {
                     InterfaceDescriptor setting = iface.altsetting()[s];
 
-                    log.info("Settings " + setting);
                     byte interfaceNumber = setting.bInterfaceNumber();
-                    log.info(String.format("Setting %d: %x %x class %x, subclass %x, protocol: %x", s,
-                            interfaceNumber,
-                            setting.iInterface(),
-                            setting.bInterfaceClass(), setting.bInterfaceSubClass(),
-                            setting.bInterfaceProtocol()
-                    ));
 
-                    if (setting.bInterfaceClass() == DfuLogic.USB_CLASS_APP_SPECIFIC &&
+                    log.info("Settings " + setting + " " + interfaceNumber);
+
+                    if (setting.bInterfaceClass() == (byte) DfuLogic.USB_CLASS_APP_SPECIFIC &&
                             setting.bInterfaceSubClass() == DfuLogic.DFU_SUBCLASS) {
                         log.debug(String.format("Found DFU interface: %d", interfaceNumber));
 
                         String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
                         log.info("StringDescriptor: " + stringDescriptor);
-                        if (stringDescriptor.contains("Flash"))
+                        if (stringDescriptor.contains(DfuLogic.FLASH_TAG)) {
+
                             flashRange = DfuSeFlashDescriptor.parse(stringDescriptor);
 
-                        result = LibUsb.claimInterface(deviceHandle, interfaceNumber);
-                        if (result != LibUsb.SUCCESS) {
-                            throw new LibUsbException("claimInterface", result);
+                            result = LibUsb.claimInterface(deviceHandle, interfaceNumber);
+                            if (result != LibUsb.SUCCESS) {
+                                throw new LibUsbException("claimInterface", result);
+                            }
+
+                            USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber, transferSize, flashRange);
+
+                            System.out.printf("info:\n" + usbInfo);
+
+                            return session;
                         }
-
-                        USBDfuConnection session = new USBDfuConnection(deviceHandle, interfaceNumber, transferSize, flashRange);
-
-                        DfuCommandGetStatus.State state = DfuCommandGetStatus.read(session);
-                        log.info("DFU state: " + state);
-                        switch (state) {
-                            case DFU_IDLE:
-                                // best status
-                                break;
-                            case DFU_ERROR:
-                                DfuCommandClearStatus.execute(session);
-                                break;
-                            case DFU_DOWNLOAD_SYNC:
-                            case DFU_DOWNLOAD_IDLE:
-                            case DFU_UPLOAD_IDLE:
-                            case DFU_MANIFEST_SYNC:
-                            case DFU_DOWNLOAD_BUSY:
-                            case DFU_MANIFEST:
-                                DfuCommandAbort.execute(session);
-                                break;
-                            default:
-                                throw new IllegalStateException("Unexpected state " + state);
-                        }
-                        state = DfuCommandGetStatus.read(session);
-                        if (state != DfuCommandGetStatus.State.DFU_IDLE)
-                            throw new IllegalStateException("Not idle");
-
-                        return session;
                     }
                 }
             }
         }
         return null;
+    }
+
+    private static void scanDescriptor(DeviceHandle deviceHandle, ConfigDescriptor config, byte numInterfaces) {
+        for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
+            Interface iface = config.iface()[interfaceIndex];
+
+            for (int s = 0; s < iface.numAltsetting(); s++) {
+                InterfaceDescriptor setting = iface.altsetting()[s];
+                appendInfo("Interface #" + interfaceIndex + " setting #" + s + ":");
+
+                byte interfaceNumber = setting.bInterfaceNumber();
+                appendInfo(String.format("Setting %d: %x %x class %x, subclass %x, protocol: %x", s,
+                        interfaceNumber,
+                        setting.iInterface(),
+                        setting.bInterfaceClass(),
+                        setting.bInterfaceSubClass(),
+                        setting.bInterfaceProtocol()
+                ));
+                String stringDescriptor = LibUsb.getStringDescriptor(deviceHandle, setting.iInterface());
+                appendInfo("Descriptor " + stringDescriptor);
+            }
+        }
+    }
+
+    private static int scanTransferSize(ConfigDescriptor config, byte numInterfaces) {
+        int transferSize = 0;
+        for (int interfaceIndex = 0; interfaceIndex < numInterfaces; interfaceIndex++) {
+            Interface iface = config.iface()[interfaceIndex];
+
+            for (int s = 0; s < iface.numAltsetting(); s++) {
+                InterfaceDescriptor setting = iface.altsetting()[s];
+                System.out.println("setting " + setting);
+
+                ByteBuffer extra = setting.extra();
+
+                if (extra.limit() > 2) {
+                    int len = extra.get();
+                    byte type = extra.get();
+                    if (type == DfuLogic.USB_DT_DFU) {
+                        System.out.println(len + " " + type);
+                        extra.get(); // bmAttributes
+                        extra.get(); // wDetachTimeOut
+                        extra.get();
+                        transferSize = swap16(extra.getShort());
+                        System.out.println("transferSize " + transferSize);
+                    }
+                }
+            }
+        }
+        return transferSize;
+    }
+
+    private static void appendInfo(String message) {
+        log.info(message);
+        usbInfo.append(message).append("\n");
     }
 
     private static DeviceHandle open(Device device) {

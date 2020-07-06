@@ -1,6 +1,8 @@
 package com.rusefi.dfu;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * ST chips send their memory layout in USB description string
@@ -25,14 +27,15 @@ public class DfuSeFlashDescriptor {
         int baseAddress = Integer.parseInt(baseAddressString, 16);
         System.out.printf("Base address %x\n", baseAddress);
 
-        int totalLength = parseRegions(topLevelSections[2].trim());
+        List<Integer> pages = parseRegions(topLevelSections[2].trim());
 
-        return new FlashRange(baseAddress, totalLength);
+        return new FlashRange(baseAddress, pages);
     }
 
-    private static int parseRegions(String regions) {
+    private static List<Integer> parseRegions(String regions) {
+        List<Integer> pages = new ArrayList<>();
+
         String[] sections = regions.split(",");
-        int totalSize = 0;
         for (String section : sections) {
             System.out.println("Region " + section);
             String parts[] = section.split("\\*");
@@ -45,8 +48,9 @@ public class DfuSeFlashDescriptor {
 
             System.out.println("Count " + count + " size " + pageSize);
 
-            totalSize += count * 1024 * pageSize;
+            for (int i = 0; i < count; i++)
+                pages.add(1024 * pageSize);
         }
-        return totalSize;
+        return pages;
     }
 }

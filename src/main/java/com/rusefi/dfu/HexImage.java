@@ -6,23 +6,20 @@ import cz.jaybee.intelhex.Parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class HexImage extends AtomicInteger {
+public class HexImage implements BinaryImage {
     private final byte[] image;
-    private final FlashRange range;
-    private final int totalBytes;
-    private final int maxOffset;
 
-    public HexImage(byte[] image, FlashRange range, int totalBytes, int maxOffset) {
+    public HexImage(byte[] image) {
         this.image = image;
-        this.range = range;
-        this.totalBytes = totalBytes;
-        this.maxOffset = maxOffset;
     }
 
-    static HexImage loadHexToBuffer(InputStream is, FlashRange range) throws IntelHexException, IOException {
-        byte[] image = new byte[range.getTotalLength()];
+    static HexImage loadHexToBuffer(InputStream is, FlashRange flashRange) throws IntelHexException, IOException {
+        Objects.requireNonNull(flashRange, "flashRange");
+        byte[] image = new byte[flashRange.getTotalLength()];
 
         // create IntelHexParserObject
         Parser ihp = new Parser(is);
@@ -39,12 +36,12 @@ public class HexImage extends AtomicInteger {
 
                 maxOffset.set((int) Math.max(maxOffset.get(), address + data.length));
 
-                if (address < range.getBaseAddress() || address + data.length > range.getBaseAddress() + range.getTotalLength())
-                    throw new IllegalStateException(String.format("Image data out of range: %x@%x not withiin %s",
+                if (address < flashRange.getBaseAddress() || address + data.length > flashRange.getBaseAddress() + flashRange.getTotalLength())
+                    throw new IllegalStateException(String.format("Image data out of range: %x@%x not within %s",
                             data.length,
                             address,
-                            range.toString()));
-                System.arraycopy(data, 0, image, (int) (address - range.getBaseAddress()), data.length);
+                            flashRange.toString()));
+                System.arraycopy(data, 0, image, (int) (address - flashRange.getBaseAddress()), data.length);
             }
 
             @Override
@@ -54,32 +51,19 @@ public class HexImage extends AtomicInteger {
         });
         ihp.parse();
 
-        return new HexImage(image, range, totalBytesReceived.get(), maxOffset.get());
+        int imageSize = maxOffset.get() - flashRange.getBaseAddress();
+        return new HexImage(Arrays.copyOfRange(image, 0, imageSize));
     }
 
+    @Override
     public byte[] getImage() {
         return image;
-    }
-
-    public int getTotalBytes() {
-        return totalBytes;
-    }
-
-    public int getMaxOffset() {
-        return maxOffset;
-    }
-
-    public FlashRange getRange() {
-        return range;
     }
 
     @Override
     public String toString() {
         return "HexImage{" +
                 "image=" + image.length +
-                ", range=" + range +
-                ", totalBytes=" + totalBytes +
-                ", maxOffset=" + maxOffset +
                 '}';
     }
 }
