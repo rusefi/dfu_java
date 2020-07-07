@@ -5,7 +5,6 @@ import com.rusefi.dfu.usb4java.USBDfuConnection;
 import cz.jaybee.intelhex.IntelHexException;
 import org.apache.commons.logging.Log;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 
 public class Sandbox {
@@ -21,9 +20,9 @@ public class Sandbox {
             return;
         }
 
-        HexImage image = HexImage.loadHexToBuffer(new FileInputStream("rusefi.hex"), device.getFlashRange());
+        //BinaryImage image = HexImage.loadHexToBuffer(new FileInputStream("rusefi.hex"), device.getFlashRange());
 
-        //DfuImage image = new DfuImage().read("rusefi_disco.dfu");
+        BinaryImage image = new DfuImage().read("rusefi.dfu");
         DfuLogic.uploadImage(logger, device, image, device.getFlashRange());
 
         log.info("STM32 DFU " + device);

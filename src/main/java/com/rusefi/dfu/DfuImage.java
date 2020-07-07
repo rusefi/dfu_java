@@ -3,6 +3,7 @@ package com.rusefi.dfu;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Inspired by https://github.com/UmbrelaSmart/android-stm32-dfu-programmer
@@ -13,6 +14,7 @@ public class DfuImage implements BinaryImage {
     private final static int TARGET_NAME_MAX_END = 276;
     private final static int TARGET_SIZE = 277;
     private final static int TARGET_NUM_ELEMENTS = 281;
+    private final static int ELEMENT1_OFFSET = 293;  // constant offset in file array where image data starts
 
     private byte[] content;
     private int PID;
@@ -42,7 +44,7 @@ public class DfuImage implements BinaryImage {
 
     @Override
     public byte[] getImage() {
-        return content;
+        return Arrays.copyOfRange(content, ELEMENT1_OFFSET, ELEMENT1_OFFSET + elementLength);
     }
 
     private static int calculateCRC(byte[] FileData) {
