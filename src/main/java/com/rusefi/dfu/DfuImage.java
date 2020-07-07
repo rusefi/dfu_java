@@ -27,17 +27,13 @@ public class DfuImage implements BinaryImage {
     private int TargetSize;
     private int NumElements;
 
-    public DfuImage read(String fileName) {
+    public DfuImage read(String fileName) throws IOException {
         File file = new File(fileName);
         this.content = new byte[(int) file.length()];
         FileInputStream fileInputStream;
-        try {
-            fileInputStream = new FileInputStream(fileName);
-            fileInputStream.read(this.content);
-            fileInputStream.close();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        fileInputStream = new FileInputStream(fileName);
+        fileInputStream.read(this.content);
+        fileInputStream.close();
         verifyFile();
         return this;
     }
