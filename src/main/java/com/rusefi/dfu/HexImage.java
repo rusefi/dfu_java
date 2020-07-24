@@ -4,6 +4,7 @@ import cz.jaybee.intelhex.DataListener;
 import cz.jaybee.intelhex.IntelHexException;
 import cz.jaybee.intelhex.Parser;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -17,7 +18,11 @@ public class HexImage implements BinaryImage {
         this.image = image;
     }
 
-    static HexImage loadHexToBuffer(InputStream is, FlashRange flashRange) throws IntelHexException, IOException {
+    public static HexImage loadHexToBuffer(String fileName, FlashRange flashRange) throws IntelHexException, IOException {
+        return loadHexToBuffer(new FileInputStream(fileName), flashRange);
+    }
+
+    public static HexImage loadHexToBuffer(InputStream is, FlashRange flashRange) throws IntelHexException, IOException {
         Objects.requireNonNull(flashRange, "flashRange");
         byte[] image = new byte[flashRange.getTotalLength()];
 
